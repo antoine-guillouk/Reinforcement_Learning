@@ -26,6 +26,8 @@ class AIGuesser(Guesser):
         return self.num > 0
 
     def get_answer(self):
+        print(self.clue)
+        print(self.words)
         sorted_words = self.compute_distance(self.clue, self.words)
         print(f'guesses: {sorted_words}')
         self.num -= 1

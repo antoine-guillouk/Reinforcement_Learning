@@ -11,8 +11,7 @@ from gym.wrappers import Monitor
 import matplotlib.pyplot as plt
 import time
 
-from game_risk import GameRisk
-from game import Game
+from game_risk import Game
 from players.guesser import *
 from players.codemaster import *
 from utils.import_string_to_class import import_string_to_class
@@ -28,11 +27,11 @@ from utils.import_string_to_class import import_string_to_class
 # risk threshold = range(0, 1, 0.1) -> 10 possibilities
 
 # Path to models
-codemaster_model = 'players.codemaster_wn_lin.AICodemaster'
+codemaster_model = 'players.codemaster_glove_rl.AICodemaster'
 guesser_model = 'players.guesser_w2v.AIGuesser'
 w2v = 'players/GoogleNews-vectors-negative300.bin'
-wordnet = 'ic-brown.dat'
-glove = None
+wordnet = None
+glove = 'players/glove.6B.300d.txt'
 
 # Global parameters
 GAMMA = 0.99
@@ -181,6 +180,7 @@ def update(state, action, reward, next_state, done):
 
 def train():
     print('Beginning training')
+    print('Loading models...')
 
     codemaster = import_string_to_class(codemaster_model)
     guesser = import_string_to_class(guesser_model)
@@ -209,7 +209,7 @@ def train():
     ep = 0
     total_time = 0
 
-    game = GameRisk(codemaster,
+    game = Game(codemaster,
             guesser,
             seed='time',
             do_print=False,
@@ -218,7 +218,8 @@ def train():
             cm_kwargs=cm_kwargs,
             g_kwargs=g_kwargs,
             nb_guesses=nb_guesses,
-            nb_good_guesses=nb_good_guesses)
+            nb_good_guesses=nb_good_guesses,
+            display_board=False)
 
     while ep < N_EPISODES:
         print(f"Episode {ep}")
@@ -234,7 +235,7 @@ def train():
         # end episode if done
         if done:
             nb_guesses, nb_good_guesses = game.get_guesses()
-            game = GameRisk(codemaster,
+            game = Game(codemaster,
                 guesser,
                 seed='time',
                 do_print=False,
@@ -243,16 +244,11 @@ def train():
                 cm_kwargs=cm_kwargs,
                 g_kwargs=g_kwargs,
                 nb_guesses=nb_guesses,
-                nb_good_guesses=nb_good_guesses)
+                nb_good_guesses=nb_good_guesses,
+                display_board=False)
             ratio = np.round(nb_good_guesses / nb_guesses, 2)
             state = [8, 7, 9, ratio]
             ep   += 1
-
-            if ( (ep+1)% EVAL_EVERY == 0):
-                rewards = eval_dqn()
-                print("episode =", ep+1, ", reward = ", np.mean(rewards))
-                if np.mean(rewards) >= REWARD_THRESHOLD:
-                    break
 
             # update target network
             if ep % UPDATE_TARGET_EVERY == 0:

@@ -28,7 +28,7 @@ class AICodemaster(Codemaster):
         self.words = words
         self.maps = maps
 
-    def get_clue(self):
+    def get_clue(self, risk):
         cos_dist = scipy.spatial.distance.cosine
         red_words = []
         bad_words = []
@@ -120,7 +120,7 @@ class AICodemaster(Codemaster):
                     worst = dist
                 if dist < best:
                     best = dist
-            if worst < 0.7 and worst != -np.inf:
+            if worst < risk and worst != -np.inf:
                 print(worst, chosen_clue, chosen_num)
                 chosen_clue = clue
                 chosen_num = clue_num
