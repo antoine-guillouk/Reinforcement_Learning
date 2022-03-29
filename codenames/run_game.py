@@ -7,6 +7,7 @@ import os
 from game import Game
 from players.guesser import *
 from players.codemaster import *
+from utils.import_string_to_class import import_string_to_class
 
 class GameRun:
     """Class that builds and runs a Game based on command line arguments"""
@@ -46,7 +47,7 @@ class GameRun:
             self.codemaster = HumanCodemaster
             print('human codemaster')
         else:
-            self.codemaster = self.import_string_to_class(args.codemaster)
+            self.codemaster = import_string_to_class(args.codemaster)
             print('loaded codemaster class')
 
         # load guesser class
@@ -54,7 +55,7 @@ class GameRun:
             self.guesser = HumanGuesser
             print('human guesser')
         else:
-            self.guesser = self.import_string_to_class(args.guesser)
+            self.guesser = import_string_to_class(args.guesser)
             print('loaded guesser class')
 
         # if the game is going to have an ai, load up word vectors
@@ -98,17 +99,6 @@ class GameRun:
         if not self.do_print:
             sys.stdout.close()
             sys.stdout = self._save_stdout
-
-    def import_string_to_class(self, import_string):
-        """Parse an import string and return the class"""
-        parts = import_string.split('.')
-        module_name = '.'.join(parts[:len(parts) - 1])
-        class_name = parts[-1]
-
-        module = importlib.import_module(module_name)
-        my_class = getattr(module, class_name)
-
-        return my_class
 
 
 if __name__ == "__main__":
