@@ -360,3 +360,4 @@ class Game:
 
         while self.game_condition != GameCondition.LOSS and self.game_condition != GameCondition.WIN:
             self.step()
+

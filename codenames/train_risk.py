@@ -125,20 +125,22 @@ def eval_dqn(n_sim=5):
         * Compute the sum of rewards in this episode
         * Store the sum of rewards in the episode_rewards array.
     """
-    env_copy = deepcopy(env)
-    episode_rewards = np.zeros(n_sim)
-    
-    for i in range(n_sim):
-        obs, done, rewards_sum = env_copy.reset(), False, 0
+    pass
 
-        while not done:
-            action = choose_action(obs, epsilon=0)
-            obs, reward, done, _ = env_copy.step(action)
-            rewards_sum += reward
-
-        episode_rewards[i] = rewards_sum
+    # env_copy = deepcopy(env)
+    # episode_rewards = np.zeros(n_sim)
     
-    return episode_rewards
+    # for i in range(n_sim):
+    #     obs, done, rewards_sum = env_copy.reset(), False, 0
+
+    #     while not done:
+    #         action = choose_action(obs, epsilon=0)
+    #         obs, reward, done, _ = env_copy.step(action)
+    #         rewards_sum += reward
+
+    #     episode_rewards[i] = rewards_sum
+    
+    # return episode_rewards
 
 def update(state, action, reward, next_state, done):
     """
