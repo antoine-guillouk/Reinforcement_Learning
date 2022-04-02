@@ -3,6 +3,7 @@ import importlib
 import argparse
 import time
 import os
+import numpy as np
 
 from game_risk_2_players import Game2Players
 from players.guesser import *
@@ -14,7 +15,7 @@ class GameRun:
 
     def __init__(self):
 
-        self.do_log = True
+        self.do_log = False
         self.do_print = True
 
         if not self.do_print:
@@ -43,8 +44,8 @@ class GameRun:
 
 
         # set seed so that board/keygrid can be reloaded later
-        #self.seed = time.time()
-        self.seed = int("3442")
+        self.seed = time.time()
+        #self.seed = int("3442")
 
     def __del__(self):
         """reset stdout if using the do_print==False option"""
@@ -56,17 +57,50 @@ class GameRun:
 if __name__ == "__main__":
     game_setup = GameRun()
 
-    game = Game2Players(game_setup.codemaster,
+    nb_red_wins = 0
+    nb_games = 200
+    mean_red_score = 0
+    mean_blue_score = 0
+
+    for i in range(nb_games):
+        print(f"\nGame n°{i+1}/{nb_games}")
+        game = Game2Players(game_setup.codemaster,
                 game_setup.guesser,
                 game_setup.codemaster,
                 game_setup.guesser,
-                seed=game_setup.seed,
+                seed=time.time(),
                 do_print=game_setup.do_print,
                 do_log=game_setup.do_log,
                 game_name=game_setup.game_name,
                 cm1_kwargs=game_setup.cm_kwargs,
                 g1_kwargs=game_setup.g_kwargs,
                 cm2_kwargs=game_setup.cm_kwargs,
-                g2_kwargs=game_setup.g_kwargs)
+                g2_kwargs=game_setup.g_kwargs,
+                display_board=False)
 
-    game.run()
+        red_win, game_counters = game.run()
+
+        if red_win:
+            nb_red_wins += 1
+        mean_red_score += game_counters[0]
+        mean_blue_score += game_counters[1]
+
+        print(f"win ratio : {nb_red_wins / (i+1)}")
+
+
+    mean_red_score = mean_red_score / nb_games
+    mean_blue_score = mean_blue_score / nb_games
+    red_win_ratio = np.round(nb_red_wins / nb_games, 3)
+
+    print("\n")
+    print(f"Red win ratio : {red_win_ratio}")
+    print(f"Mean red score : {mean_red_score}")
+    print(f"Mean blue score  : {mean_blue_score}")
+
+    with open("results/results_2p_original.txt", "a") as f:
+        f.write(
+            f"Red win ratio : {red_win_ratio}"
+            f"Mean red score : {mean_red_score}"
+            f"Mean blue score  : {mean_blue_score}"
+        )
+

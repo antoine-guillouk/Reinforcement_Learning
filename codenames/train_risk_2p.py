@@ -11,7 +11,7 @@ from gym.wrappers import Monitor
 import matplotlib.pyplot as plt
 import time
 
-from game_risk import Game
+from game_risk_2_players import Game2Players
 from players.guesser import *
 from players.codemaster import *
 from utils.import_string_to_class import import_string_to_class
@@ -27,7 +27,7 @@ from utils.import_string_to_class import import_string_to_class
 # risk threshold = range(0, 1, 0.1) -> 10 possibilities
 
 # Path to models
-codemaster_model = 'players.codemaster_glove_rl.AICodemaster'
+codemaster_model = 'players.codemaster_glove_rl_2p.AICodemaster'
 guesser_model = 'players.guesser_w2v.AIGuesser'
 w2v = 'players/GoogleNews-vectors-negative300.bin'
 wordnet = None
@@ -104,15 +104,15 @@ guesser = import_string_to_class(guesser_model)
 g_kwargs = {}
 cm_kwargs = {}
 if wordnet is not None:
-    brown_ic = Game.load_wordnet(wordnet)
+    brown_ic = Game2Players.load_wordnet(wordnet)
     g_kwargs["brown_ic"] = brown_ic
     cm_kwargs["brown_ic"] = brown_ic
 if glove is not None:
-    glove_vectors = Game.load_glove_vecs(glove)
+    glove_vectors = Game2Players.load_glove_vecs(glove)
     g_kwargs["glove_vecs"] = glove_vectors
     cm_kwargs["glove_vecs"] = glove_vectors
 if w2v is not None:
-    w2v_vectors = Game.load_w2v(w2v)
+    w2v_vectors = Game2Players.load_w2v(w2v)
     g_kwargs["word_vectors"] = w2v_vectors
     cm_kwargs["word_vectors"] = w2v_vectors
 
@@ -134,12 +134,12 @@ def choose_action(state, epsilon):
     q_values = get_q([state])
     
     if random.random() < epsilon:
-        action = random.randint(0, n_actions-1) / 10
-        print(f"Chosen risk level : {action}")
+        action = random.randint(0, n_actions-1)
+        #print(f"Chosen risk level (random) : {action/10} (epsilon = {epsilon})")
         return action
     else:
         action = np.argmax(q_values[0])
-        print(f"Chosen risk level : {action}")
+        #print(f"Chosen risk level : {action/10} (epsilon = {epsilon})")
         return action
 
 def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
@@ -154,21 +154,29 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
     episode_rewards = np.zeros(n_sim)
     
     for i in range(n_sim):
-        game = Game(codemaster,
+        game = Game2Players(codemaster,
+            guesser,
+            codemaster,
             guesser,
             seed=time.time(),
             do_print=False,
             do_log=False,
             game_name='train_risk_rl',
-            cm_kwargs=cm_kwargs,
-            g_kwargs=g_kwargs,
+            cm1_kwargs=cm_kwargs,
+            g1_kwargs=g_kwargs,
+            cm2_kwargs=cm_kwargs,
+            g2_kwargs=g_kwargs,
             display_board=False)
 
         state, done, rewards_sum = [8, 7, 9, 0], False, 0
 
         while not done:
             action = choose_action(state, epsilon=0)
-            state, reward, done = game.step(action)
+            risk = action / 10
+            states, rewards, done = game.step(risk, 0)
+            if not done:
+                states, rewards, done = game.step(0.7, 1)
+            state, reward = states[0], rewards[0]
             rewards_sum += reward
 
         episode_rewards[i] = rewards_sum
@@ -191,7 +199,7 @@ def update(state, action, reward, next_state, done):
     # get batch
     transitions = replay_buffer.sample(BATCH_SIZE)
     
-    # Compute loss - TO BE IMPLEMENTED!
+    # Compute loss
     states = torch.FloatTensor([transition[0] for transition in transitions])
     actions = torch.LongTensor([[transition[1]] for transition in transitions])
     
@@ -223,24 +231,32 @@ def train():
     ep = 0
     total_time = 0
 
-    game = Game(codemaster,
+    game = Game2Players(codemaster,
+            guesser,
+            codemaster,
             guesser,
             seed=time.time(),
-            do_print=False,
+            do_print=True,
             do_log=False,
             game_name='train_risk_rl',
-            cm_kwargs=cm_kwargs,
-            g_kwargs=g_kwargs,
-            nb_guesses=nb_guesses,
-            nb_good_guesses=nb_good_guesses,
+            cm1_kwargs=cm_kwargs,
+            g1_kwargs=g_kwargs,
+            cm2_kwargs=cm_kwargs,
+            g2_kwargs=g_kwargs,
+            nb_guesses_1=nb_guesses,
+            nb_good_guesses_1=nb_good_guesses,
             display_board=False)
 
+    print(f"Episode 0")
     while ep < N_EPISODES:
-        print(f"Episode {ep}")
         action = choose_action(state, epsilon)
+        risk = action / 10
 
         # take action
-        next_state, reward, done = game.step(action)
+        next_states, rewards, done = game.step(risk, 0)
+        if not done:
+            next_states, rewards, done = game.step(0.7, 1)
+        next_state, reward = next_states[0], rewards[0]
         loss = update(state, action, reward, next_state, done)
 
         # update state
@@ -248,21 +264,26 @@ def train():
 
         # end episode if done
         if done:
-            nb_guesses, nb_good_guesses = game.get_guesses()
-            game = Game(codemaster,
+            nb_guesses, nb_good_guesses = game.get_guesses(0)
+            game = Game2Players(codemaster,
+                guesser,
+                codemaster,
                 guesser,
                 seed=time.time(),
-                do_print=False,
+                do_print=True,
                 do_log=False,
                 game_name='train_risk_rl',
-                cm_kwargs=cm_kwargs,
-                g_kwargs=g_kwargs,
-                nb_guesses=nb_guesses,
-                nb_good_guesses=nb_good_guesses,
+                cm1_kwargs=cm_kwargs,
+                g1_kwargs=g_kwargs,
+                cm2_kwargs=cm_kwargs,
+                g2_kwargs=g_kwargs,
+                nb_guesses_1=nb_guesses,
+                nb_good_guesses_1=nb_good_guesses,
                 display_board=False)
             ratio = np.round(nb_good_guesses / nb_guesses, 2)
             state = [8, 7, 9, ratio]
             ep   += 1
+            print(f"Episode {ep+1}")
 
             if ( (ep+1)% EVAL_EVERY == 0):
                 rewards = eval_dqn(codemaster,
@@ -278,8 +299,14 @@ def train():
                 target_net.load_state_dict(q_net.state_dict())
             # decrease epsilon
             epsilon = EPSILON_MIN + (EPSILON_START - EPSILON_MIN) * \
-                            np.exp(-1. * ep / DECREASE_EPSILON )    
+                            np.exp(-1. * ep / DECREASE_EPSILON )
+            print(f"Epsilon : {epsilon}")
 
         total_time += 1
 
 train()
+
+# Evaluate the final policy
+rewards = eval_dqn(20)
+print("")
+print("mean reward after training = ", np.mean(rewards))

@@ -86,7 +86,7 @@ class Game2Players:
             self.seed = seed
             random.seed(int(seed))
 
-        print("seed:", self.seed)
+        #print("seed:", self.seed)
 
         # load board words
         with open("reduced_game_wordpool.txt", "r") as f:
@@ -201,7 +201,10 @@ class Game2Players:
         nb_remaining_reds = 8 - self.words_on_board.count("*Red*")
         nb_remaining_blues = 7 - self.words_on_board.count("*Blue*")
         nb_remaining_grays = 9 - self.words_on_board.count("*Civilian*")
-        ratio = np.round(self.nb_good_guessess[player_index] / self.nb_guessess[player_index], 2)
+        if self.nb_guessess[player_index] > 0:
+            ratio = np.round(self.nb_good_guessess[player_index] / self.nb_guessess[player_index], 2)
+        else:
+            ratio = 0
         if player_index == 0:
             return [nb_remaining_reds, nb_remaining_blues, nb_remaining_grays, ratio]
         else:
@@ -293,9 +296,10 @@ class Game2Players:
         if os.path.exists("results") and os.path.isdir("results"):
             shutil.rmtree("results")
 
-    def step(self, action, player_index):
+    def step(self, risk, player_index):
         # board setup and display
-        print('\n' * 2)
+        if self.display_board:
+            print('\n' * 2)
         words_in_play = self.get_words_on_board()
         current_key_grid = self.get_key_grid()
         self.codemasters[player_index].set_game_state(words_in_play, current_key_grid)
@@ -304,7 +308,7 @@ class Game2Players:
             self._display_board_codemaster()
 
         # codemaster gives clue & number here
-        clue, clue_num = self.codemasters[player_index].get_clue(action)
+        clue, clue_num = self.codemasters[player_index].get_clue(risk, do_print=self.display_board)
         self.game_counters[player_index] += 1
         keep_guessing = True
         guess_num = 0
@@ -314,13 +318,14 @@ class Game2Players:
         done = False
         rewards = [0, 0]
 
-        print('\n' * 2)
-        self.guessers[player_index].set_clue(clue, clue_num)
+        if self.display_board:
+            print('\n' * 2)
+        self.guessers[player_index].set_clue(clue, clue_num, do_print=self.display_board)
 
         self.game_condition = [GameCondition.HIT_RED, GameCondition.HIT_BLUE][player_index]
         while guess_num <= clue_num and keep_guessing and self.game_condition == [GameCondition.HIT_RED, GameCondition.HIT_BLUE][player_index]:
             self.guessers[player_index].set_board(words_in_play)
-            guess_answer = self.guessers[player_index].get_answer()
+            guess_answer = self.guessers[player_index].get_answer(do_print=self.display_board)
 
             # if no comparisons were made/found than retry input from codemaster
             if guess_answer is None or guess_answer == "no comparisons":
@@ -330,12 +335,14 @@ class Game2Players:
             self.nb_guessess[player_index] += 1
 
             if self.game_condition == [GameCondition.HIT_RED, GameCondition.HIT_BLUE][player_index]:
-                print('\n' * 2)
+                if self.display_board:
+                    print('\n' * 2)
                 if self.display_board:
                     self._display_board_codemaster()
                 guess_num += 1
                 self.nb_good_guessess[player_index] += 1
-                print("Keep Guessing? the clue is ", clue, clue_num)
+                if self.display_board:
+                    print("Keep Guessing? the clue is ", clue, clue_num)
                 keep_guessing = self.guessers[player_index].keep_guessing()
 
             # if guesser selected a civilian or a blue-paired word
@@ -368,8 +375,8 @@ class Game2Players:
                 print("Red Game Counter:", self.game_counters[0])
                 print("Blue Game Counter:", self.game_counters[1])
 
-        next_state = self.get_state(player_index)
-        return next_state, rewards[player_index], done
+        next_states = [self.get_state(0), self.get_state(1)]
+        return next_states, rewards, done
 
     def run(self):
         """Function that runs the codenames game between codemaster and guesser"""
@@ -379,3 +386,5 @@ class Game2Players:
         while self.game_condition != GameCondition.LOSS and self.game_condition != GameCondition.WIN:
             self.step(0.7, player_index)
             player_index = 1 - player_index
+
+        return self.game_condition == GameCondition.WIN, self.game_counters

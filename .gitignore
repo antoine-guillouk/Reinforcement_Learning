@@ -130,8 +130,11 @@ dmypy.json
 .pyre/
 
 # Embeddings
-glove.6B.300d.txt
-glove.6B.50d.txt
-glove.6B.100d.txt
-glove.6B.200d.txt
-GoogleNews-vectors-negative300.bin
+codenames/players/glove.6B.300d.txt
+codenames/players/glove.6B.50d.txt
+codenames/players/glove.6B.100d.txt
+codenames/players/glove.6B.200d.txt
+codenames/players/GoogleNews-vectors-negative300.bin
+
+# results
+codenames/results/*.txt

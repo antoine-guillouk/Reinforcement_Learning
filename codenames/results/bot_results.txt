@@ -10,3 +10,5 @@ TOTAL:7 B:1 C:1 A:0 R:8 CM:AICodemaster GUESSER:AIGuesser SEED:3442
 TOTAL:7 B:1 C:1 A:0 R:8 CM:AICodemaster GUESSER:AIGuesser SEED:3442
 TOTAL:5 B:3 C:4 A:0 R:8 CM_RED:AICodemaster CM_BLUE:AICodemaster GUESSER_RED:AIGuesser GUESSER_BLUE:AIGuesser SEED:3442
 TOTAL:6 B:4 C:4 A:0 R:8 CM_RED:AICodemaster CM_BLUE:AICodemaster GUESSER_RED:AIGuesser GUESSER_BLUE:AIGuesser SEED:3442
+TOTAL:6 B:4 C:4 A:0 R:8 CM_RED:AICodemaster CM_BLUE:AICodemaster GUESSER_RED:AIGuesser GUESSER_BLUE:AIGuesser SEED:3442
+Red win ratio : 1.0Mean red score : 6.0Mean blue score  : 25.0Red win ratio : 0.0Mean red score : 25.0Mean blue score  : 6.0Red win ratio : 1.0Mean red score : 4.0Mean blue score  : 25.0Red win ratio : 0.4Mean red score : 17.2Mean blue score  : 13.7Red win ratio : 0.44Mean red score : 16.23Mean blue score  : 13.75
