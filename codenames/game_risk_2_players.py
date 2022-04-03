@@ -206,9 +206,9 @@ class Game2Players:
         else:
             ratio = 0
         if player_index == 0:
-            return [nb_remaining_reds, nb_remaining_blues, nb_remaining_grays, ratio]
+            return [nb_remaining_reds/9, nb_remaining_blues/9, nb_remaining_grays/9, ratio]
         else:
-            return [nb_remaining_blues, nb_remaining_reds, nb_remaining_grays, ratio]
+            return [nb_remaining_blues/9, nb_remaining_reds/9, nb_remaining_grays/9, ratio]
 
     def get_guesses(self, player_index):
         return self.nb_guessess[player_index], self.nb_good_guessess[player_index]
@@ -347,13 +347,14 @@ class Game2Players:
 
             # if guesser selected a civilian or a blue-paired word
             elif self.game_condition == GameCondition.CONTINUE:
+                rewards[player_index] = guess_num
                 break
 
             elif self.game_condition == GameCondition.LOSS:
                 self.game_end_time = time.time()
                 self.game_counters[0] = 25
                 done = True
-                rewards = [-25, 25 - self.game_counters[1]]
+                rewards = [-25, 25]
                 if self.display_board:
                     self._display_board_codemaster()
                 if self.do_log:
@@ -366,7 +367,7 @@ class Game2Players:
                 self.game_end_time = time.time()
                 self.game_counters[1] = 25
                 done = True
-                rewards = [25 - self.game_counters[0], -25]
+                rewards = [25, -25]
                 if self.display_board:
                     self._display_board_codemaster()
                 if self.do_log:
@@ -378,13 +379,14 @@ class Game2Players:
         next_states = [self.get_state(0), self.get_state(1)]
         return next_states, rewards, done
 
-    def run(self):
+    def run(self, risk_1=0.7, risk_2=0.7):
         """Function that runs the codenames game between codemaster and guesser"""
 
         player_index = 0
+        risk_levels = [risk_1, risk_2]
 
         while self.game_condition != GameCondition.LOSS and self.game_condition != GameCondition.WIN:
-            self.step(0.7, player_index)
+            self.step(risk_levels[player_index], player_index)
             player_index = 1 - player_index
 
         return self.game_condition == GameCondition.WIN, self.game_counters

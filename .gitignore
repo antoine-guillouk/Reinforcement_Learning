@@ -138,3 +138,6 @@ codenames/players/GoogleNews-vectors-negative300.bin
 
 # results
 codenames/results/*.txt
+
+# models
+codenames/models/*

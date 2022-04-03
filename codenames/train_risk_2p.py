@@ -36,15 +36,15 @@ glove = 'players/glove.6B.300d.txt'
 # Global parameters
 GAMMA = 0.99
 BATCH_SIZE = 4
-UPDATE_TARGET_EVERY = 32
+UPDATE_TARGET_EVERY = 10
 EPSILON_START = 1.0
 DECREASE_EPSILON = 200
 EPSILON_MIN = 0.05
 N_EPISODES = 200
 LEARNING_RATE = 0.1
 BUFFER_CAPACITY = 10000
-EVAL_EVERY = 5
-REWARD_THRESHOLD = 20
+EVAL_EVERY = 100
+REWARD_THRESHOLD = 30
 
 # Define our network
 class Net(nn.Module):
@@ -88,6 +88,9 @@ n_actions = 10
 
 q_net = Net(obs_size, hidden_size, n_actions)
 target_net = Net(obs_size, hidden_size, n_actions)
+
+q_net.load_state_dict(torch.load('models/risk_2p_400ep_norm'))
+target_net.load_state_dict(torch.load('models/risk_2p_400ep_norm'))
 
 # objective and optimizer
 objective = nn.MSELoss()
@@ -142,6 +145,17 @@ def choose_action(state, epsilon):
         #print(f"Chosen risk level : {action/10} (epsilon = {epsilon})")
         return action
 
+def choose_action_2(state):
+    """
+    Return action according to an epsilon-greedy exploration policy
+    """
+    if state[0] > state[1]:
+        return 7
+    elif state[0] < state[1]:
+        return 3
+    else:
+        return 5
+
 def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
     """
     Monte Carlo evaluation of DQN agent.
@@ -159,7 +173,7 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
             codemaster,
             guesser,
             seed=time.time(),
-            do_print=False,
+            do_print=True,
             do_log=False,
             game_name='train_risk_rl',
             cm1_kwargs=cm_kwargs,
@@ -168,10 +182,11 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
             g2_kwargs=g_kwargs,
             display_board=False)
 
-        state, done, rewards_sum = [8, 7, 9, 0], False, 0
+        state, done, rewards_sum = [8/9, 7/9, 9/9, 0], False, 0
 
         while not done:
             action = choose_action(state, epsilon=0)
+            #action = choose_action_2(state)
             risk = action / 10
             states, rewards, done = game.step(risk, 0)
             if not done:
@@ -180,6 +195,8 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
             rewards_sum += reward
 
         episode_rewards[i] = rewards_sum
+
+    print(f"Win percentage : {len([r for r in episode_rewards if r > 0]) / n_sim}")
     
     return episode_rewards
 
@@ -226,7 +243,7 @@ def train():
     nb_guesses = 0
     nb_good_guesses = 0
 
-    state = [8, 7, 9, 0]
+    state = [8/9, 7/9, 9/9, 0]
     epsilon = EPSILON_START
     ep = 0
     total_time = 0
@@ -281,7 +298,7 @@ def train():
                 nb_good_guesses_1=nb_good_guesses,
                 display_board=False)
             ratio = np.round(nb_good_guesses / nb_guesses, 2)
-            state = [8, 7, 9, ratio]
+            state = [8/9, 7/9, 9/9, ratio]
             ep   += 1
             print(f"Episode {ep+1}")
 
@@ -304,9 +321,19 @@ def train():
 
         total_time += 1
 
-train()
+    torch.save(q_net.state_dict(), f'models/risk_2p_{N_EPISODES * 3}ep_norm')
+
+#train()
+
+#q_net.load_state_dict(torch.load('models/risk_2p_300ep'))
+
+print(get_q([[3/9, 7/9, 7/9, 0.5], [6/9, 2/9, 7/9, 0.5]]))
 
 # Evaluate the final policy
-rewards = eval_dqn(20)
+rewards = eval_dqn(codemaster,
+    guesser,
+    cm_kwargs=cm_kwargs,
+    g_kwargs=g_kwargs,
+    n_sim=100)
 print("")
 print("mean reward after training = ", np.mean(rewards))

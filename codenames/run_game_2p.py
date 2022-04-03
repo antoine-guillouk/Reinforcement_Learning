@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 g2_kwargs=game_setup.g_kwargs,
                 display_board=False)
 
-        red_win, game_counters = game.run()
+        red_win, game_counters = game.run(risk_1=0.3, risk_2=0.7)
 
         if red_win:
             nb_red_wins += 1
