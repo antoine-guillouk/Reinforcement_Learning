@@ -142,12 +142,19 @@ if __name__ == "__main__":
     game_setup = GameRun()
 
     game = Game(game_setup.codemaster,
-                game_setup.guesser,
-                seed=game_setup.seed,
-                do_print=game_setup.do_print,
-                do_log=game_setup.do_log,
-                game_name=game_setup.game_name,
-                cm_kwargs=game_setup.cm_kwargs,
-                g_kwargs=game_setup.g_kwargs)
+        game_setup.guesser,
+        seed=game_setup.seed,
+        do_print=game_setup.do_print,
+        do_log=game_setup.do_log,
+        game_name=game_setup.game_name,
+        cm_kwargs=game_setup.cm_kwargs,
+        g_kwargs=game_setup.g_kwargs)
 
-    game.run()
+    nb_eval = 100
+    w = 0
+    for i in range (nb_eval):
+        win = game.run()
+        if win :
+            w += 1
+        game.reset()
+    print("Win percentage : ", w/nb_eval)
