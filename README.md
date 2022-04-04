@@ -270,3 +270,16 @@ Install colorama for colored console output:
 ### These files can optionally be installed as well, provide path through command arguments:
 * [Glove Vectors](https://nlp.stanford.edu/data/glove.6B.zip) (~2.25 GB)
 * [Google News Vectors](https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit) (~3.5 GB)
+
+### Run a competitive game
+
+Run directly `python run_game_2p.py`.
+
+To change the setup of the games, modify the attributes in the `GameRun` class :
+- `self.do_log` : `True` or `False`
+- `self.do_print` : `True` or `False`
+- `self.display_board` : `True` or `False`
+- `self.codemaster` : `import_string_to_class("players.{CODEMASTER_NAME}.AICodemaster")`
+- `self.guesser` : `import_string_to_class("players.{GUESSER_NAME}.AICodemaster")`
+
+**! For now, only `codemaster_glove_rl_2p` is working for a competitive game !**
