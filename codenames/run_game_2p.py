@@ -17,6 +17,7 @@ class GameRun:
 
         self.do_log = False
         self.do_print = True
+        self.display_board = True
 
         if not self.do_print:
             self._save_stdout = sys.stdout
@@ -58,50 +59,47 @@ if __name__ == "__main__":
     game_setup = GameRun()
 
     nb_red_wins = 0
-    nb_games = 20
+    nb_games = 1
     mean_red_score = 0
     mean_blue_score = 0
 
-    for risk_1 in [0.3, 0.5, 0.7]:
-        for risk_2 in [0.3, 0.5, 0.7]:
+    for i in range(nb_games):
+        print(f"\nGame n°{i+1}/{nb_games}")
+        game = Game2Players(game_setup.codemaster,
+                game_setup.guesser,
+                game_setup.codemaster,
+                game_setup.guesser,
+                seed=time.time(),
+                do_print=game_setup.do_print,
+                do_log=game_setup.do_log,
+                game_name=game_setup.game_name,
+                cm1_kwargs=game_setup.cm_kwargs,
+                g1_kwargs=game_setup.g_kwargs,
+                cm2_kwargs=game_setup.cm_kwargs,
+                g2_kwargs=game_setup.g_kwargs,
+                display_board=game_setup.display_board)
 
-            for i in range(nb_games):
-                print(f"\nGame n°{i+1}/{nb_games}")
-                game = Game2Players(game_setup.codemaster,
-                        game_setup.guesser,
-                        game_setup.codemaster,
-                        game_setup.guesser,
-                        seed=time.time(),
-                        do_print=game_setup.do_print,
-                        do_log=game_setup.do_log,
-                        game_name=game_setup.game_name,
-                        cm1_kwargs=game_setup.cm_kwargs,
-                        g1_kwargs=game_setup.g_kwargs,
-                        cm2_kwargs=game_setup.cm_kwargs,
-                        g2_kwargs=game_setup.g_kwargs,
-                        display_board=False)
+        red_win, game_counters = game.run(risk_1=0.7, risk_2=0.7)
 
-                red_win, game_counters = game.run(risk_1=risk_1, risk_2=risk_2)
+        if red_win:
+            nb_red_wins += 1
+        mean_red_score += game_counters[0]
+        mean_blue_score += game_counters[1]
 
-                if red_win:
-                    nb_red_wins += 1
-                mean_red_score += game_counters[0]
-                mean_blue_score += game_counters[1]
-
-                print(f"win ratio : {nb_red_wins / (i+1)}")
+        print(f"win ratio : {nb_red_wins / (i+1)}")
 
 
-            mean_red_score = mean_red_score / nb_games
-            mean_blue_score = mean_blue_score / nb_games
-            red_win_ratio = np.round(nb_red_wins / nb_games, 3)
+    mean_red_score = mean_red_score / nb_games
+    mean_blue_score = mean_blue_score / nb_games
+    red_win_ratio = np.round(nb_red_wins / nb_games, 3)
 
-            print("\n")
-            print(f"Red win ratio : {red_win_ratio}")
-            print(f"Mean red score : {mean_red_score}")
-            print(f"Mean blue score  : {mean_blue_score}")
+    print("\n")
+    print(f"Red win ratio : {red_win_ratio}")
+    print(f"Mean red score : {mean_red_score}")
+    print(f"Mean blue score  : {mean_blue_score}")
 
-            with open("results/results_2p_original.txt", "a") as f:
-                f.write(
-                    f"\n risk 1 = {risk_1}, risk 2 = {risk_2}, red win ratio : {red_win_ratio}"
-                )
+    # with open("results/results_2p_original.txt", "a") as f:
+    #     f.write(
+    #         f"\n risk 1 = {risk_1}, risk 2 = {risk_2}, red win ratio : {red_win_ratio}"
+    #     )
 
