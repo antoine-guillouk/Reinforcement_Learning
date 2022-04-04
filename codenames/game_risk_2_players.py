@@ -89,7 +89,7 @@ class Game2Players:
         #print("seed:", self.seed)
 
         # load board words
-        with open("reduced_game_wordpool.txt", "r") as f:
+        with open("game_wordpool.txt", "r") as f:
             temp = f.read().splitlines()
             assert len(temp) == len(set(temp)), "game_wordpool.txt should not have duplicates"
             random.shuffle(temp)
@@ -232,6 +232,7 @@ class Game2Players:
 
         elif self.key_grid[guess_index] == "Assassin":
             self.words_on_board[guess_index] = "*Assassin*"
+            print("ASSASSIN !")
             return [GameCondition.LOSS, GameCondition.WIN][player_index]
 
         else:
@@ -360,8 +361,8 @@ class Game2Players:
                 if self.do_log:
                     self.write_results(self.game_counters[player_index])
                 print("Red Lost")
-                print("Red Game Counter:", self.game_counters[0])
-                print("Blue Game Counter:", self.game_counters[1])
+                # print("Red Game Counter:", self.game_counters[0])
+                # print("Blue Game Counter:", self.game_counters[1])
 
             elif self.game_condition == GameCondition.WIN:
                 self.game_end_time = time.time()
@@ -373,8 +374,8 @@ class Game2Players:
                 if self.do_log:
                     self.write_results(self.game_counters[player_index])
                 print("Red Won")
-                print("Red Game Counter:", self.game_counters[0])
-                print("Blue Game Counter:", self.game_counters[1])
+                # print("Red Game Counter:", self.game_counters[0])
+                # print("Blue Game Counter:", self.game_counters[1])
 
         next_states = [self.get_state(0), self.get_state(1)]
         return next_states, rewards, done

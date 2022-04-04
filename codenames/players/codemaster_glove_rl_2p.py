@@ -18,7 +18,7 @@ class AICodemaster(Codemaster):
         self.wordnet_lemmatizer = WordNetLemmatizer()
         self.lancaster_stemmer = LancasterStemmer()
         self.cm_wordlist = []
-        with open('players/reduced_cm_wordlist.txt') as infile:
+        with open('players/cm_wordlist.txt') as infile:
             for line in infile:
                 self.cm_wordlist.append(line.rstrip())
 

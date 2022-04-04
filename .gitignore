@@ -137,7 +137,7 @@ codenames/players/glove.6B.200d.txt
 codenames/players/GoogleNews-vectors-negative300.bin
 
 # results
-codenames/results/*.txt
+codenames/results/*
 
 # models
 codenames/models/*

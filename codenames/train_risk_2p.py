@@ -37,14 +37,15 @@ glove = 'players/glove.6B.300d.txt'
 GAMMA = 0.99
 BATCH_SIZE = 4
 UPDATE_TARGET_EVERY = 10
-EPSILON_START = 1.0
-DECREASE_EPSILON = 200
+EPSILON_START = 0.4
+DECREASE_EPSILON = 100
 EPSILON_MIN = 0.05
-N_EPISODES = 200
+N_EPISODES = 100
 LEARNING_RATE = 0.1
 BUFFER_CAPACITY = 10000
-EVAL_EVERY = 100
+EVAL_EVERY = 150
 REWARD_THRESHOLD = 30
+SAVE_EVERY = 10
 
 # Define our network
 class Net(nn.Module):
@@ -89,8 +90,8 @@ n_actions = 10
 q_net = Net(obs_size, hidden_size, n_actions)
 target_net = Net(obs_size, hidden_size, n_actions)
 
-q_net.load_state_dict(torch.load('models/risk_2p_400ep_norm'))
-target_net.load_state_dict(torch.load('models/risk_2p_400ep_norm'))
+q_net.load_state_dict(torch.load('models/risk_2p_100ep_full'))
+target_net.load_state_dict(torch.load('models/risk_2p_100ep_full'))
 
 # objective and optimizer
 objective = nn.MSELoss()
@@ -167,6 +168,10 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
     """
     episode_rewards = np.zeros(n_sim)
     
+    nb_guesses = 0
+    nb_good_guesses = 0
+    ratio = 0
+    
     for i in range(n_sim):
         game = Game2Players(codemaster,
             guesser,
@@ -180,9 +185,11 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
             g1_kwargs=g_kwargs,
             cm2_kwargs=cm_kwargs,
             g2_kwargs=g_kwargs,
+            nb_good_guesses_1=nb_good_guesses,
+            nb_guesses_1=nb_guesses,
             display_board=False)
 
-        state, done, rewards_sum = [8/9, 7/9, 9/9, 0], False, 0
+        state, done, rewards_sum = [8/9, 7/9, 9/9, 0], False, ratio
 
         while not done:
             action = choose_action(state, epsilon=0)
@@ -194,6 +201,8 @@ def eval_dqn(codemaster, guesser, cm_kwargs, g_kwargs, n_sim=5):
             state, reward = states[0], rewards[0]
             rewards_sum += reward
 
+        nb_guesses, nb_good_guesses = game.get_guesses(0)
+        ratio = np.round(nb_good_guesses / nb_guesses, 2)
         episode_rewards[i] = rewards_sum
 
     print(f"Win percentage : {len([r for r in episode_rewards if r > 0]) / n_sim}")
@@ -264,7 +273,7 @@ def train():
             nb_good_guesses_1=nb_good_guesses,
             display_board=False)
 
-    print(f"Episode 0")
+    print(f"Episode 1")
     while ep < N_EPISODES:
         action = choose_action(state, epsilon)
         risk = action / 10
@@ -298,6 +307,7 @@ def train():
                 nb_good_guesses_1=nb_good_guesses,
                 display_board=False)
             ratio = np.round(nb_good_guesses / nb_guesses, 2)
+            print('ratio ', ratio)
             state = [8/9, 7/9, 9/9, ratio]
             ep   += 1
             print(f"Episode {ep+1}")
@@ -319,13 +329,16 @@ def train():
                             np.exp(-1. * ep / DECREASE_EPSILON )
             print(f"Epsilon : {epsilon}")
 
+            if ep % SAVE_EVERY == 0:
+                torch.save(q_net.state_dict(), f'models/risk_2p_{ep+100}ep_full')
+
         total_time += 1
 
-    torch.save(q_net.state_dict(), f'models/risk_2p_{N_EPISODES * 3}ep_norm')
+    torch.save(q_net.state_dict(), f'models/risk_2p_{N_EPISODES * 2}ep_full')
 
-#train()
+train()
 
-#q_net.load_state_dict(torch.load('models/risk_2p_300ep'))
+# q_net.load_state_dict(torch.load('models/risk_2p_100ep_full'))
 
 print(get_q([[3/9, 7/9, 7/9, 0.5], [6/9, 2/9, 7/9, 0.5]]))
 
@@ -334,6 +347,6 @@ rewards = eval_dqn(codemaster,
     guesser,
     cm_kwargs=cm_kwargs,
     g_kwargs=g_kwargs,
-    n_sim=100)
+    n_sim=10)
 print("")
 print("mean reward after training = ", np.mean(rewards))
