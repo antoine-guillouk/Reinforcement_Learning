@@ -81,7 +81,7 @@ class Game:
         # load board words
         with open("reduced_game_wordpool.txt", "r") as f:
             temp = f.read().splitlines()
-            assert len(temp) == len(set(temp)), "game_wordpool.txt should not have duplicates"
+            assert len(temp) == len(set(temp)), "reduced_game_wordpool.txt should not have duplicates"
             random.shuffle(temp)
             self.words_on_board = temp[:25]
 
@@ -325,3 +325,21 @@ class Game:
                         self.write_results(game_counter)
                     print("You Won")
                     print("Game Counter:", game_counter)
+                    
+        return game_condition == GameCondition.WIN
+
+    def reset(self):
+
+        self.game_start_time = time.time()
+        colorama.init()
+
+        # load board words
+        with open("reduced_game_wordpool.txt", "r") as f:
+            temp = f.read().splitlines()
+            assert len(temp) == len(set(temp)), "reduced_game_wordpool.txt should not have duplicates"
+            random.shuffle(temp)
+            self.words_on_board = temp[:25]
+
+        # set grid key for codemaster (spymaster)
+        self.key_grid = ["Red"] * 8 + ["Blue"] * 7 + ["Civilian"] * 9 + ["Assassin"]
+        random.shuffle(self.key_grid)

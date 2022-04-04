@@ -50,10 +50,16 @@ Other optional arguments include:
   * game_name in logfile
 
 An example simulation of a *wordnet codemaster* and a *word2vec guesser* in the terminal from codenames/:  
-`$ python run_game.py players.codemaster_wn_lin.AICodemaster players.guesser_w2v.AIGuesser --seed 3442 --w2v players/GoogleNews-vectors-negative300.bin  --wordnet ic-brown.dat`
+`$ python3 run_game.py players.codemaster_wn_lin.AICodemaster players.guesser_w2v.AIGuesser --seed 3442 --w2v players/GoogleNews-vectors-negative300.bin  --wordnet ic-brown.dat`
 
 An example of running glove codemaster and glove guesser with different glove vectors (removed glove_glove.py)
-`$ python run_game.py players.codemaster_glove_07.AICodemaster players.guesser_glove.AIGuesser --seed 3442 --glove_cm players/glove.6B.50d.txt --glove_guesser players/glove.6B.100d.txt`
+`$ python3 run_game.py players.codemaster_glove_07.AICodemaster players.guesser_glove.AIGuesser --seed 3442 --glove_cm players/glove.6B/glove.6B.50d.txt --glove_guesser players/glove.6B/glove.6B.100d.txt`
+
+With training :
+`$ python3 run_game.py players.codemaster_trained.AICodemaster players.guesser_w2v.AIGuesser --seed 3442 --glove_cm players/glove.6B/glove.6B.300d.txt --w2v players/GoogleNews-vectors-negative300.bin --codemaster_training True`
+
+To eval :
+`$ python3 eval_game.py players.codemaster_trained.AICodemaster players.guesser_w2v.AIGuesser --seed 3442 --glove_cm players/glove.6B/glove.6B.300d.txt --w2v players/GoogleNews-vectors-negative300.bin --codemaster_training True`
 
 ## Running the game from calling Game(...).run()
 
