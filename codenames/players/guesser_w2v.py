@@ -15,19 +15,24 @@ class AIGuesser(Guesser):
     def set_board(self, words):
         self.words = words
 
-    def set_clue(self, clue, num):
+    def set_clue(self, clue, num, do_print=True):
         self.clue = clue
         self.num = num
-        print("The clue is:", clue, num)
+        if do_print:
+            print("The clue is:", clue, num)
         li = [clue, num]
         return li
 
     def keep_guessing(self):
         return self.num > 0
 
-    def get_answer(self):
+    def get_answer(self, do_print=True):
+        if do_print:
+            print(self.clue)
+            print(self.words)
         sorted_words = self.compute_distance(self.clue, self.words)
-        print(f'guesses: {sorted_words}')
+        if do_print:
+            print(f'guesses: {sorted_words}')
         self.num -= 1
         return sorted_words[0][1]
 

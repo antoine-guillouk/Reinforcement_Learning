@@ -79,7 +79,7 @@ class Game:
         print("seed:", self.seed)
 
         # load board words
-        with open("game_wordpool.txt", "r") as f:
+        with open("reduced_game_wordpool.txt", "r") as f:
             temp = f.read().splitlines()
             assert len(temp) == len(set(temp)), "game_wordpool.txt should not have duplicates"
             random.shuffle(temp)
